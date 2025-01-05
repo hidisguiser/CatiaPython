@@ -2,9 +2,13 @@
 from pycatia import catia  
 from pycatia.mec_mod_interfaces.part_document import PartDocument  
 import tkinter as tk  
+
+
 #Connect to catia and the catia client window displays
 caa = catia()  
 caa.visible = True  
+
+
 #Error prevention: If the opened file is a part document, run it directly. If not, create a new part document.
 try:  
     part_Document: PartDocument = caa.active_document  
