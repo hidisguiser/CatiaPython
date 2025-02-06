@@ -1,48 +1,64 @@
-#Import some required libraries  
-from pycatia import catia  
-from pycatia.mec_mod_interfaces.part_document import PartDocument  
-import tkinter as tk  
+from pycatia import catia
+from pycatia.mec_mod_interfaces.part_document import PartDocument
+import tkinter as tk
 
+# 常量定义，用于存储属性名称
+PROPERTIES = ["物料编码", "物料名称", "材质", "备注", "重要描述", "规格"]
 
-#Connect to catia and the catia client window displays
-caa = catia()  
-caa.visible = True  
+# 连接到CATIA并显示CATIA客户端窗口
+def connect_to_catia():
+    caa = catia()
+    caa.visible = True
+    return caa
 
+# 获取或创建PartDocument
+def get_or_create_part_document(caa):
+    try:
+        part_document = caa.active_document
+    except Exception as e:
+        print(f"未找到活动文档，创建新文档。错误信息: {e}")
+        documents = caa.documents
+        part_document = documents.add('Part')
+    return part_document
 
-#Error prevention: If the opened file is a part document, run it directly. If not, create a new part document.
-try:  
-    part_Document: PartDocument = caa.active_document  
-except:  
-    documents = caa.documents  
-    PartDocument = documents.add('Part')  
-    part_Document: PartDocument = caa.active_document  
-  
-  
-def Pdel():  
-    DelUstr1 = part_Document.product.user_ref_properties.remove("物料编码")  
-    DelUstr2 = part_Document.product.user_ref_properties.remove("物料名称")  
-    DelUstr3 = part_Document.product.user_ref_properties.remove("材质")  
-    DelUstr4 = part_Document.product.user_ref_properties.remove("备注")  
-    DelUstr5 = part_Document.product.user_ref_properties.remove("重要描述")  
-    DelUstr6 = part_Document.product.user_ref_properties.remove("规格")  
-    part_Document.part.update  
-  
-def Padd():  
-    Ustr1 = part_Document.product.user_ref_properties.create_string("物料编码", "物料编码")  
-    Ustr2 = part_Document.product.user_ref_properties.create_string("物料名称", "物料名称")  
-    Ustr3 = part_Document.product.user_ref_properties.create_string("材质", "材料")  
-    Ustr4 = part_Document.product.user_ref_properties.create_string("备注", "备注")  
-    Ustr5 = part_Document.product.user_ref_properties.create_string("重要描述", "重要描述")  
-    Ustr6 = part_Document.product.user_ref_properties.create_string("规格", "规格")  
-    part_Document.part.update  
-  
-#tk windows  
-root = tk.Tk()  
-root.geometry('200x50+200+200')  
-root.title('添加CATIA自定义零件属性')  
-root.attributes("-topmost", True)  
-bt1 = tk.Button(root, text="添加自定义参数", command=Padd, width=12)  
-bt1.grid(row=5, column=10)  
-bt2 = tk.Button(root, text="清理自定义参数", command=Pdel, width=12)  
-bt2.grid(row=5, column=20)  
-root.mainloop()
+# 删除自定义属性
+def delete_properties(part_document):
+    for prop in PROPERTIES:
+        try:
+            part_document.product.user_ref_properties.remove(prop)
+        except Exception as e:
+            print(f"删除属性 '{prop}' 失败: {e}")
+    part_document.part.update()
+
+# 添加自定义属性
+def add_properties(part_document):
+    for prop in PROPERTIES:
+        try:
+            part_document.product.user_ref_properties.create_string(prop, prop)
+        except Exception as e:
+            print(f"添加属性 '{prop}' 失败: {e}")
+    part_document.part.update()
+
+# 创建Tkinter窗口
+def create_tkinter_window(part_document):
+    root = tk.Tk()
+    root.geometry('200x50+200+200')
+    root.title('添加CATIA自定义零件属性')
+    root.attributes("-topmost", True)
+
+    bt1 = tk.Button(root, text="添加自定义参数", command=lambda: add_properties(part_document), width=12)
+    bt1.grid(row=5, column=10)
+
+    bt2 = tk.Button(root, text="清理自定义参数", command=lambda: delete_properties(part_document), width=12)
+    bt2.grid(row=5, column=20)
+
+    root.mainloop()
+
+# 主函数
+def main():
+    caa = connect_to_catia()
+    part_document = get_or_create_part_document(caa)
+    create_tkinter_window(part_document)
+
+if __name__ == "__main__":
+    main()
